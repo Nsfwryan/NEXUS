@@ -1,0 +1,26 @@
+const events={
+ai:{name:"THE AI FRONTIER",category:"TECH & AI",date:"21 August 2027",time:"10:00 AM",venue:"Main Hall",description:"Discover the next frontier of artificial intelligence, from responsible AI to creative collaboration between humans and machines."},
+design:{name:"DESIGN WITHOUT LIMITS",category:"DESIGN",date:"21 August 2027",time:"12:30 PM",venue:"Studio A",description:"Explore how design thinking, emerging technologies and human empathy are shaping the digital experiences of tomorrow."},
+robotics:{name:"BUILD A BOT",category:"WORKSHOP",date:"21 August 2027",time:"3:00 PM",venue:"Lab 02",description:"A hands-on beginner-friendly workshop where participants prototype, program and test a simple autonomous robot."},
+space:{name:"BEYOND EARTH",category:"TECH & AI",date:"22 August 2027",time:"10:30 AM",venue:"Main Hall",description:"Explore satellite technology, space innovation and the new possibilities unlocked by next-generation exploration."},
+immersive:{name:"THE IMMERSIVE WORLD",category:"DESIGN",date:"22 August 2027",time:"1:00 PM",venue:"Studio B",description:"A fascinating look at spatial computing, extended reality and immersive interactive experiences."},
+hack:{name:"THE RAPID BUILD",category:"WORKSHOP",date:"22 August 2027",time:"3:30 PM",venue:"Lab 01",description:"Take an ambitious idea from sketch to functional prototype with quick iterations and creative teamwork."}
+};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];let selected=null,filter="all";
+function showModal(id){const el=$("#"+id);el.classList.add("open");el.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"}
+function hideModal(id){const el=$("#"+id);el.classList.remove("open");el.setAttribute("aria-hidden","true");document.body.style.overflow=""}
+$$("[data-close]").forEach(b=>b.addEventListener("click",()=>hideModal(b.dataset.close)));
+$$(".overlay").forEach(el=>el.addEventListener("click",e=>{if(e.target===el)hideModal(el.id)}));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$$(".overlay.open").forEach(el=>hideModal(el.id))});
+$$(".details").forEach(b=>b.addEventListener("click",()=>{selected=b.dataset.id;const e=events[selected];$("#eventCategory").textContent=e.category;$("#eventTitle").textContent=e.name;$("#eventDescription").textContent=e.description;$("#eventFacts").textContent=`${e.date} · ${e.time}  |  ${e.venue}`;showModal("eventOverlay")}));
+function openForm(pass="",event=""){hideModal("eventOverlay");$("#registrationForm").hidden=false;$("#success").hidden=true;$("#registrationForm").reset();$("#passSelect").value=pass;$("#eventSelect").value=event;showModal("formOverlay")}
+$$(".register").forEach(b=>b.addEventListener("click",()=>openForm(b.dataset.pass)));
+$("#registerEvent").addEventListener("click",()=>openForm("All Access",events[selected].name));
+$("#registrationForm").addEventListener("submit",e=>{e.preventDefault();const form=e.currentTarget;if(!form.reportValidity())return;const data=Object.fromEntries(new FormData(form).entries());if(!/^[0-9]{10}$/.test(data.phone))return;let stored;try{stored=JSON.parse(localStorage.getItem("nexusRegistrations")||"[]");if(!Array.isArray(stored))stored=[]}catch{stored=[]}stored.push({...data,createdAt:new Date().toISOString()});try{localStorage.setItem("nexusRegistrations",JSON.stringify(stored))}catch{alert("Unable to save registration on this device. Please enable local storage.");return}form.hidden=true;$("#success").hidden=false;$("#successText").textContent=`Thanks, ${data.name}! Your registration for ${data.event} (${data.pass}) is saved on this device.`});
+$("#doneBtn").addEventListener("click",()=>hideModal("formOverlay"));
+function updateFilter(){const q=$("#search").value.toLowerCase().trim();let n=0;$$(".event-card").forEach(c=>{const e=events[c.dataset.id];const match=(filter==="all"||c.dataset.category===filter)&&(`${e.name} ${e.category} ${e.venue} ${e.description}`.toLowerCase().includes(q));c.hidden=!match;if(match)n++});$("#noResults").hidden=n>0}
+$("#search").addEventListener("input",updateFilter);$$(".filter").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.filter;$$(".filter").forEach(x=>x.classList.toggle("active",x===b));updateFilter()}));
+$("#menuBtn").addEventListener("click",()=>{const nav=$("#nav"),open=nav.classList.toggle("open");$("#menuBtn").textContent=open?"×":"☰"});$$("#nav a").forEach(a=>a.addEventListener("click",()=>{$("#nav").classList.remove("open");$("#menuBtn").textContent="☰"}));
+$("#themeBtn").addEventListener("click",()=>{const light=document.body.classList.toggle("light");$("#themeBtn").textContent=light?"☾":"☀";localStorage.setItem("nexusTheme",light?"light":"dark")});if(localStorage.getItem("nexusTheme")==="light"){document.body.classList.add("light");$("#themeBtn").textContent="☾"}
+const start=new Date("2027-08-21T09:00:00+05:30").getTime();
+function tick(){const ms=Math.max(0,start-Date.now());if(ms===0){$("#timer").innerHTML="<strong>WE'RE LIVE ✳</strong>";return}const parts=[Math.floor(ms/86400000),Math.floor(ms/3600000)%24,Math.floor(ms/60000)%60,Math.floor(ms/1000)%60];["days","hours","minutes","seconds"].forEach((id,i)=>$("#"+id).textContent=String(parts[i]).padStart(i===0?3:2,"0"))}tick();setInterval(tick,1000);
